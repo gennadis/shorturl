@@ -22,14 +22,14 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUrl, err := url.ParseRequestURI(string(b))
+	newURL, err := url.ParseRequestURI(string(b))
 	if err != nil {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
 
 	id := hash.GenerateHash(HashLen)
-	urls[id] = newUrl.String()
+	urls[id] = newURL.String()
 
 	response := fmt.Sprintf("http://localhost:8080/%s", id)
 
@@ -40,12 +40,12 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 
 func redirectURL(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Path[1:] // omit the `/` symbol
-	orignalUrl, ok := urls[hash]
+	orignalURL, ok := urls[hash]
 	if !ok {
 		http.Error(w, "Wrong hash provided", http.StatusBadRequest)
 		return
 	}
-	w.Header().Set("Location", orignalUrl)
+	w.Header().Set("Location", orignalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
