@@ -17,19 +17,19 @@ var urls = make(map[string]string)
 // Returns 201 and short url in request body if successful.
 func shortenURL(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", 400)
+		http.Error(w, "Invalid request method", http.StatusBadRequest)
 		return
 	}
 
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Invalid request body", 400)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	newUrl, err := url.ParseRequestURI(string(b))
 	if err != nil {
-		http.Error(w, "Invalid URL", 400)
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
 
