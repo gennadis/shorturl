@@ -39,7 +39,14 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func redirectURL(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Not implemented"))
+	hash := r.URL.Path[1:] // omit the `/` symbol
+	orignalUrl, ok := urls[hash]
+	if !ok {
+		http.Error(w, "Wrong hash provided", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Location", orignalUrl)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 func multiplexer(w http.ResponseWriter, r *http.Request) {
