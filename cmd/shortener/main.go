@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/gennadis/shorturl/internal/app/hash"
 )
@@ -26,8 +27,14 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newUrl, err := url.ParseRequestURI(string(b))
+	if err != nil {
+		http.Error(w, "Invalid URL", 400)
+		return
+	}
+
 	id := hash.GenerateHash(HashLen)
-	urls[id] = string(b)
+	urls[id] = newUrl.String()
 
 	response := fmt.Sprintf("http://localhost:8080/%s", id)
 
