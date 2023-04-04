@@ -16,6 +16,7 @@ var urls = make(map[string]string)
 // Accepts POST requests with `url` to shorten in request body.
 // Returns 201 and short url in request body if successful.
 func shortenURL(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
