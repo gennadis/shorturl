@@ -2,24 +2,24 @@ package memstore
 
 import "errors"
 
-type Store struct {
+type Storage struct {
 	data map[string]string
 }
 
-func New() *Store {
-	return &Store{
+func New() *Storage {
+	return &Storage{
 		data: make(map[string]string),
 	}
 }
 
-func (s *Store) Read(key string) (string, error) {
+func (s *Storage) Read(key string) (string, error) {
 	if value, ok := s.data[key]; ok {
 		return value, nil
 	}
 	return "", errors.New("key not found")
 }
 
-func (s *Store) Write(key string, value string) error {
+func (s *Storage) Write(key string, value string) error {
 	if key == "" {
 		return errors.New("key not set")
 	}
