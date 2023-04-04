@@ -31,7 +31,7 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 	id := hash.GenerateHash(config.HashLen)
 	urls[id] = newURL.String()
 
-	response := fmt.Sprintf("%s/%s", config.Addr, id)
+	response := fmt.Sprintf("http://%s/%s", config.Addr, id)
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
@@ -63,5 +63,7 @@ func multiplexer(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", multiplexer)
-	http.ListenAndServe(config.Addr, nil)
+	if err := http.ListenAndServe(config.Addr, nil); err != nil {
+		fmt.Println(err)
+	}
 }
