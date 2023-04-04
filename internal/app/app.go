@@ -11,28 +11,34 @@ import (
 	"github.com/gennadis/shorturl/internal/storage"
 )
 
-type App struct {
+type app struct {
 	appStorage storage.Repository
 }
 
-func (a *App) Start() error {
-	http.HandleFunc("/", a.Multiplex)
+func New(storage storage.Repository) *app {
+	return &app{
+		appStorage: storage,
+	}
+}
+
+func (a *app) Start() error {
+	http.HandleFunc("/", a.multiplex)
 	return http.ListenAndServe(config.Addr, nil)
 }
 
-func (a *App) Multiplex(w http.ResponseWriter, r *http.Request) {
+func (a *app) multiplex(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		a.Shorten(w, r)
+		a.shorten(w, r)
 	case http.MethodGet:
-		a.Expand(w, r)
+		a.expand(w, r)
 	default:
 		http.Error(w, "Invalid request method", http.StatusBadRequest)
 		return
 	}
 }
 
-func (a *App) Shorten(w http.ResponseWriter, r *http.Request) {
+func (a *app) shorten(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -46,7 +52,7 @@ func (a *App) Shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := hash.GenerateHash(config.HashLen)
+	id := hash.Generate(config.HashLen)
 	a.appStorage.Write(id, newURL.String())
 
 	response := fmt.Sprintf("http://%s/%s", config.Addr, id)
@@ -56,7 +62,7 @@ func (a *App) Shorten(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(response))
 }
 
-func (a *App) Expand(w http.ResponseWriter, r *http.Request) {
+func (a *app) expand(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Path[1:] // omit the `/` symbol
 	orignalURL, err := a.appStorage.Read(hash)
 	if err != nil {
@@ -65,10 +71,4 @@ func (a *App) Expand(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Location", orignalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-}
-
-func New(storage storage.Repository) *App {
-	return &App{
-		appStorage: storage,
-	}
 }

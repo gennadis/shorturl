@@ -8,6 +8,4 @@ const (
 	HashLen = 6
 )
 
-var (
-	Addr = fmt.Sprintf("%s:%d", Host, Port)
-)
+var Addr = fmt.Sprintf("%s:%d", Host, Port)
