@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gennadis/shorturl/internal/app/config"
-	"github.com/gennadis/shorturl/internal/app/hash"
+	"github.com/gennadis/shorturl/internal/config"
+	"github.com/gennadis/shorturl/internal/hash"
 )
 
 var urls = make(map[string]string)
