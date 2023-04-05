@@ -22,11 +22,11 @@ func New(storage storage.Repository) *app {
 }
 
 func (a *app) Start() error {
-	http.HandleFunc("/", a.multiplex)
+	http.HandleFunc("/", a.Multiplex)
 	return http.ListenAndServe(config.Addr, nil)
 }
 
-func (a *app) multiplex(w http.ResponseWriter, r *http.Request) {
+func (a *app) Multiplex(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		a.shorten(w, r)
@@ -51,11 +51,9 @@ func (a *app) shorten(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
-
-	id := hash.Generate(config.HashLen)
-	a.appStorage.Write(id, newURL.String())
-
-	response := fmt.Sprintf("http://%s/%s", config.Addr, id)
+	newHash := hash.Generate(config.HashLen)
+	a.appStorage.Write(newHash, newURL.String())
+	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
