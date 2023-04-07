@@ -19,13 +19,14 @@ const (
 )
 
 func TestShortenerApp(t *testing.T) {
-	store := memstore.New()
-	a := app.New(store)
+	storage := memstore.New()
+	server := app.New(storage)
+	server.MountHandlers()
 
 	// Test URL Shortener
 	shortenReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL))
 	shortenResp := httptest.NewRecorder()
-	a.Multiplex(shortenResp, shortenReq)
+	server.Router.ServeHTTP(shortenResp, shortenReq)
 
 	shortURL, _ := url.ParseRequestURI(shortenResp.Body.String())
 	urlHash := shortURL.Path[1:]
@@ -39,7 +40,7 @@ func TestShortenerApp(t *testing.T) {
 	// Test URL Expander
 	expandReq, _ := http.NewRequest(http.MethodGet, "/"+urlHash, nil)
 	expandResp := httptest.NewRecorder()
-	a.Multiplex(expandResp, expandReq)
+	server.Router.ServeHTTP(expandResp, expandReq)
 
 	assertResponseCode(t, expandResp.Code, http.StatusTemporaryRedirect)
 	assertResponseHeader(t, "Location", expandResp.Header().Get("Location"), longURL)
