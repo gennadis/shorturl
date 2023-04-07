@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"github.com/gennadis/shorturl/internal/config"
-	"github.com/gennadis/shorturl/internal/hash"
 	"github.com/gennadis/shorturl/internal/storage"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
@@ -53,7 +52,7 @@ func (s *Server) shorten(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
-	newHash := hash.Generate(config.HashLen)
+	newHash := generateHash(config.HashLen)
 	s.Store.Write(newHash, newURL.String())
 	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
 
