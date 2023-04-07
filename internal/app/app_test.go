@@ -32,7 +32,7 @@ func TestShortenerApp(t *testing.T) {
 	urlHash := shortURL.Path[1:]
 
 	assertResponseCode(t, shortenResp.Code, http.StatusCreated)
-	assertResponseHeader(t, "Content-Type", shortenResp.Header().Get("Content-Type"), "text/plain")
+	assertResponseHeader(t, app.ContentType, shortenResp.Header().Get(app.ContentType), app.PlaingText)
 	assertHost(t, shortURL.Host, config.Addr)
 	assertHashLen(t, len(urlHash), config.HashLen)
 	assertHashLettersOnly(t, hashPattern, urlHash)
@@ -43,7 +43,7 @@ func TestShortenerApp(t *testing.T) {
 	server.Router.ServeHTTP(expandResp, expandReq)
 
 	assertResponseCode(t, expandResp.Code, http.StatusTemporaryRedirect)
-	assertResponseHeader(t, "Location", expandResp.Header().Get("Location"), longURL)
+	assertResponseHeader(t, app.Location, expandResp.Header().Get(app.Location), longURL)
 
 }
 

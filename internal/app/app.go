@@ -12,19 +12,18 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+const (
+	ContentType = "Content-Type"
+	Location    = "Location"
+	PlaingText  = "text/plain"
+)
+
 type Server struct {
 	Store  storage.Repository
 	Router *chi.Mux
 }
 
-func New(storage storage.Repository) *Server {
-	return &Server{
-		Store:  storage,
-		Router: chi.NewRouter(),
-	}
-}
-
-func (s *Server) Start() error {
+func (s *Server) Start() (err error) {
 	s.MountHandlers()
 	return http.ListenAndServe(config.Addr, s.Router)
 }
@@ -52,11 +51,16 @@ func (s *Server) shorten(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
+
 	newHash := generateHash(config.HashLen)
-	s.Store.Write(newHash, newURL.String())
+	if err := s.Store.Write(newHash, newURL.String()); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
 
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set(ContentType, PlaingText)
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(response))
 }
@@ -69,6 +73,13 @@ func (s *Server) expand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Location", orignalURL)
+	w.Header().Set(Location, orignalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func New(storage storage.Repository) *Server {
+	return &Server{
+		Store:  storage,
+		Router: chi.NewRouter(),
+	}
 }
