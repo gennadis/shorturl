@@ -9,36 +9,34 @@ import (
 	"github.com/gennadis/shorturl/internal/config"
 	"github.com/gennadis/shorturl/internal/hash"
 	"github.com/gennadis/shorturl/internal/storage"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
-type app struct {
-	appStorage storage.Repository
+type Server struct {
+	Store  storage.Repository
+	Router *chi.Mux
 }
 
-func New(storage storage.Repository) *app {
-	return &app{
-		appStorage: storage,
+func New(storage storage.Repository) *Server {
+	return &Server{
+		Store:  storage,
+		Router: chi.NewRouter(),
 	}
 }
 
-func (a *app) Start() error {
-	http.HandleFunc("/", a.Multiplex)
-	return http.ListenAndServe(config.Addr, nil)
+func (s *Server) Start() error {
+	s.MountHandlers()
+	return http.ListenAndServe(config.Addr, s.Router)
 }
 
-func (a *app) Multiplex(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		a.shorten(w, r)
-	case http.MethodGet:
-		a.expand(w, r)
-	default:
-		http.Error(w, "Invalid request method", http.StatusBadRequest)
-		return
-	}
+func (s *Server) MountHandlers() {
+	s.Router.Use(middleware.Logger)
+	s.Router.Post("/", s.shorten)
+	s.Router.Get("/{hash}", s.expand)
 }
 
-func (a *app) shorten(w http.ResponseWriter, r *http.Request) {
+func (s *Server) shorten(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -52,7 +50,7 @@ func (a *app) shorten(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newHash := hash.Generate(config.HashLen)
-	a.appStorage.Write(newHash, newURL.String())
+	s.Store.Write(newHash, newURL.String())
 	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
 
 	w.Header().Set("Content-Type", "text/plain")
@@ -60,13 +58,14 @@ func (a *app) shorten(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(response))
 }
 
-func (a *app) expand(w http.ResponseWriter, r *http.Request) {
-	hash := r.URL.Path[1:] // omit the `/` symbol
-	orignalURL, err := a.appStorage.Read(hash)
+func (s *Server) expand(w http.ResponseWriter, r *http.Request) {
+	hash := chi.URLParam(r, "hash")
+	orignalURL, err := s.Store.Read(hash)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	w.Header().Set("Location", orignalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }

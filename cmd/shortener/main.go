@@ -9,8 +9,8 @@ import (
 
 func main() {
 	storage := memstore.New()
-	shortener := app.New(storage)
-	if err := shortener.Start(); err != nil {
+	server := app.New(storage)
+	if err := server.Start(); err != nil {
 		fmt.Println(err)
 	}
 }
