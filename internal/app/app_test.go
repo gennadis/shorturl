@@ -18,12 +18,11 @@ const (
 	hashPattern = "^[a-zA-Z]+$"
 )
 
-func TestShortenerApp(t *testing.T) {
+func TestShortenURL(t *testing.T) {
 	storage := memstore.New()
 	server := app.New(storage)
 	server.MountHandlers()
 
-	// Test URL Shortener
 	shortenReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL))
 	shortenResp := httptest.NewRecorder()
 	server.Router.ServeHTTP(shortenResp, shortenReq)
@@ -36,15 +35,26 @@ func TestShortenerApp(t *testing.T) {
 	assertHost(t, shortURL.Host, config.Addr)
 	assertHashLen(t, len(urlHash), config.HashLen)
 	assertHashLettersOnly(t, hashPattern, urlHash)
+}
 
-	// Test URL Expander
+func TestExpandURL(t *testing.T) {
+	storage := memstore.New()
+	server := app.New(storage)
+	server.MountHandlers()
+
+	shortenReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL))
+	shortenResp := httptest.NewRecorder()
+	server.Router.ServeHTTP(shortenResp, shortenReq)
+
+	shortURL, _ := url.ParseRequestURI(shortenResp.Body.String())
+	urlHash := shortURL.Path[1:]
+
 	expandReq, _ := http.NewRequest(http.MethodGet, "/"+urlHash, nil)
 	expandResp := httptest.NewRecorder()
 	server.Router.ServeHTTP(expandResp, expandReq)
 
 	assertResponseCode(t, expandResp.Code, http.StatusTemporaryRedirect)
 	assertResponseHeader(t, app.Location, expandResp.Header().Get(app.Location), longURL)
-
 }
 
 func assertResponseCode(t testing.TB, got, want int) {
