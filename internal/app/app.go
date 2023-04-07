@@ -31,7 +31,11 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) MountHandlers() {
+	s.Router.Use(middleware.RequestID)
+	s.Router.Use(middleware.RealIP)
 	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.Recoverer)
+
 	s.Router.Post("/", s.shorten)
 	s.Router.Get("/{hash}", s.expand)
 }
