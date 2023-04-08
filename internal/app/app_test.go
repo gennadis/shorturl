@@ -46,12 +46,12 @@ func TestShortenURL(t *testing.T) {
 	assert.Equal(t, "Invalid URL\n", emptyStringResp.Body.String())
 
 	// Invalid URL
-	invalidUrlReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("123"))
-	invalidUrlResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(invalidUrlResp, invalidUrlReq)
+	invalidURLReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("123"))
+	invalidURLResp := httptest.NewRecorder()
+	server.Router.ServeHTTP(invalidURLResp, invalidURLReq)
 
-	assert.Equal(t, http.StatusBadRequest, invalidUrlResp.Code)
-	assert.Equal(t, "Invalid URL\n", invalidUrlResp.Body.String())
+	assert.Equal(t, http.StatusBadRequest, invalidURLResp.Code)
+	assert.Equal(t, "Invalid URL\n", invalidURLResp.Body.String())
 
 }
 
