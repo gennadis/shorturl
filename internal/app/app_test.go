@@ -31,7 +31,7 @@ func TestShortenURL(t *testing.T) {
 	urlHash := shortURL.Path[1:]
 
 	assert.Equal(t, http.StatusCreated, shortenResp.Code)
-	assert.Equal(t, app.PlaingText, shortenResp.Header().Get(app.ContentType))
+	assert.Equal(t, app.PlainText, shortenResp.Header().Get(app.ContentType))
 	assert.Equal(t, config.Addr, shortURL.Host)
 	assert.Equal(t, config.HashLen, len(urlHash))
 	assert.Regexp(t, hashPattern, urlHash)
@@ -42,7 +42,7 @@ func TestShortenURL(t *testing.T) {
 	server.Router.ServeHTTP(emptyStringResp, emptyStringReq)
 
 	assert.Equal(t, http.StatusBadRequest, emptyStringResp.Code)
-	assert.Equal(t, app.PlaingText, shortenResp.Header().Get(app.ContentType))
+	assert.Equal(t, app.PlainText, shortenResp.Header().Get(app.ContentType))
 	assert.Equal(t, "Invalid URL\n", emptyStringResp.Body.String())
 
 	// Invalid URL

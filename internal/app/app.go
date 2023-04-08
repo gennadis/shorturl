@@ -15,7 +15,7 @@ import (
 const (
 	ContentType = "Content-Type"
 	Location    = "Location"
-	PlaingText  = "text/plain"
+	PlainText   = "text/plain"
 )
 
 type Server struct {
@@ -60,7 +60,7 @@ func (s *Server) shorten(w http.ResponseWriter, r *http.Request) {
 
 	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
 
-	w.Header().Set(ContentType, PlaingText)
+	w.Header().Set(ContentType, PlainText)
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(response))
 }
