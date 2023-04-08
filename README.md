@@ -1,34 +1,49 @@
-# go-musthave-shortener-tpl
+# ShortURL app
+ShortURL is a simple web application that allows users to create short URLs using a hash function. The shortened URL will redirect to the original URL when accessed.
 
-Шаблон репозитория для практического трек "Веб-разработка на Go"
+## Getting Started
+To use the ShortURL app, you need to have `Go` installed on your computer. You can download `Go` from the [official website](https://golang.org/dl/).
 
-# Начало работы
-
-1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере
-2. В корне репозитория выполните команду `go mod init <name>` (где `<name>` - адрес вашего репозитория на Github без
-   префикса `https://`) для создания модуля
-
-# Обновление шаблона
-
-Чтобы иметь возможность получать обновления автотестов и других частей шаблона выполните следующую команды:
-
-```
-git remote add -m main template https://github.com/yandex-praktikum/go-musthave-shortener-tpl.git
+After installing `Go`, clone the repository using the following command:
+```bash
+git clone https://github.com/gennadis/shorturl.git
 ```
 
-Для обновления кода автотестов выполните команду:
-
+Change into the project directory:
+```bash
+cd shorturl
 ```
-git fetch template && git checkout template/main .github
+
+Then, build the app:
+```go
+go build
 ```
 
-затем добавьте полученые изменения в свой репозиторий.
+To start the app, run:
+```bash
+./shorturl
+```
 
-# Запуск автотестов
+By default, the app will start listening on `localhost` port `8080`.
 
-Для успешного запуска автотестов вам необходимо давать вашим веткам названия вида `iter<number>`, где `<number>` -
-порядковый номер итерации.
+## Usage
+To create a short URL, send a `POST` request to the root endpoint with the URL you want to shorten in the request body. The app will return the shortened URL as plain text in the response body.
 
-Например в ветке с названием `iter4` запустятся автотесты для итераций с первой по четвертую.
+To access the original URL, access the shortened URL returned in the previous step. The app will redirect to the original URL.
 
-При мерже ветки с итерацией в основную ветку (`main`) будут запускаться все автотесты.
+## Dependencies
+The `ShortURL` app has the following dependencies:
+- go-chi/chi/v5
+- go-chi/chi/v5/middleware
+
+These dependencies can be installed using the go get command:
+```go
+go get github.com/go-chi/chi/v5
+go get github.com/go-chi/chi/v5/middleware
+```
+
+## Configuration
+The app can be configured using the config package in internal/`config/config.go`. The default configuration sets the app to listen on port `8080` and use a hash length of `6`. You can modify the configuration by changing the values in `config.go`.
+
+## Contributing
+If you would like to contribute to the `ShortURL` app, please create a `pull request` with your changes. All contributions are welcome!
