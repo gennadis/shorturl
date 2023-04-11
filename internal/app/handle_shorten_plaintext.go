@@ -9,7 +9,7 @@ import (
 	"github.com/gennadis/shorturl/internal/config"
 )
 
-func (s *Server) shorten_plaintext(w http.ResponseWriter, r *http.Request) {
+func (s *Server) shortenPlaintext(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
