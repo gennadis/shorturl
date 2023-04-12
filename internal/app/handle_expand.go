@@ -14,6 +14,6 @@ func (s *Server) expand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(Location, orignalURL)
+	w.Header().Set("Location", orignalURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }

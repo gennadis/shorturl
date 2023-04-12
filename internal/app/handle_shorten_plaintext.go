@@ -31,7 +31,7 @@ func (s *Server) shortenPlaintext(w http.ResponseWriter, r *http.Request) {
 
 	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
 
-	w.Header().Set(ContentType, PlainText)
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(response))
 }

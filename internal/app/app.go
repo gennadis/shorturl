@@ -9,12 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-const (
-	ContentType = "Content-Type"
-	Location    = "Location"
-	PlainText   = "text/plain"
-)
-
 type Server struct {
 	Store  storage.Repository
 	Router *chi.Mux

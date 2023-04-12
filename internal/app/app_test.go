@@ -39,7 +39,7 @@ func TestHandlers(t *testing.T) {
 		body:    longURL,
 		want: want{
 			statusCode:  http.StatusCreated,
-			contentType: app.PlainText,
+			contentType: "text/plain",
 			body:        shortenURL(longURL),
 		},
 	},
