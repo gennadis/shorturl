@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gennadis/shorturl/internal/config"
+	"github.com/gennadis/shorturl/config"
 )
 
 func (s *Server) shortenPlaintext(w http.ResponseWriter, r *http.Request) {

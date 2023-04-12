@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gennadis/shorturl/internal/config"
+	"github.com/gennadis/shorturl/config"
 )
 
 // TODO: Use more data to generate hash

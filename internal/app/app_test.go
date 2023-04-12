@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gennadis/shorturl/config"
 	"github.com/gennadis/shorturl/internal/app"
-	"github.com/gennadis/shorturl/internal/config"
 	"github.com/gennadis/shorturl/internal/storage/memstore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
