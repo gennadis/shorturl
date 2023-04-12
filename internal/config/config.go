@@ -5,7 +5,7 @@ import "fmt"
 const (
 	Host    = "localhost"
 	Port    = 8080
-	HashLen = 6
+	HashLen = 7
 )
 
 var Addr = fmt.Sprintf("%s:%d", Host, Port)
