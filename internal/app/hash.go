@@ -1,17 +1,16 @@
 package app
 
 import (
-	"math/rand"
-	"time"
+	"crypto/md5"
+	"fmt"
+	"strings"
+
+	"github.com/gennadis/shorturl/internal/config"
 )
 
-const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func generateHash(n int) string {
-	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letters[seed.Intn(len(letters))]
-	}
-	return string(b)
+// TODO: Use more data to generate hash
+func GenerateHash(s string, n int) string {
+	checksum := md5.Sum([]byte(s))
+	hash := fmt.Sprintf("%X", checksum)
+	return strings.ToLower(hash[0:config.HashLen])
 }

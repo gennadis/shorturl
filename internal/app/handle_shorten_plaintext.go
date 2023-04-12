@@ -23,7 +23,7 @@ func (s *Server) shortenPlaintext(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newHash := generateHash(config.HashLen)
+	newHash := GenerateHash(newURL.String(), config.HashLen)
 	if err := s.Store.Write(newHash, newURL.String()); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
