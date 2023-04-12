@@ -1,85 +1,147 @@
 package app_test
 
 import (
-	"bytes"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gennadis/shorturl/internal/app"
 	"github.com/gennadis/shorturl/internal/config"
 	"github.com/gennadis/shorturl/internal/storage/memstore"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
-	longURL     = "http://example.com"
-	hashPattern = "^[a-zA-Z]+$"
+	longURL = "http://amazon.com.tr"
 )
 
-func TestShortenURL(t *testing.T) {
+func TestHandlers(t *testing.T) {
+	type want struct {
+		statusCode  int
+		contentType string
+		body        string
+	}
+
+	tests := []struct {
+		name    string
+		request string
+		method  string
+		body    string
+		want    want
+	}{{
+		name:    "Shorten valid original URL",
+		request: "/",
+		method:  http.MethodPost,
+		body:    longURL,
+		want: want{
+			statusCode:  http.StatusCreated,
+			contentType: app.PlainText,
+			body:        shortenURL(longURL),
+		},
+	},
+		{
+			name:    "Shorten invalid original URL",
+			request: "/",
+			method:  http.MethodPost,
+			body:    "qwertyuiop",
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "text/plain; charset=utf-8",
+				body:        "Invalid URL\n",
+			},
+		},
+		{
+			name:    "Shorten empty original URL",
+			request: "/",
+			method:  http.MethodPost,
+			body:    "",
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "text/plain; charset=utf-8",
+				body:        "Invalid URL\n",
+			},
+		},
+		{
+			name:    "Use wrong method",
+			request: "/",
+			method:  http.MethodGet,
+			body:    "",
+			want: want{
+				statusCode:  http.StatusMethodNotAllowed,
+				contentType: "",
+				body:        "",
+			},
+		},
+		{
+			name:    "Expand valid hash",
+			request: "/eebc6e3",
+			method:  http.MethodGet,
+			body:    "",
+			want: want{
+				statusCode:  http.StatusTemporaryRedirect,
+				contentType: "",
+				body:        "",
+			},
+		},
+		{
+			name:    "Expand invalid hash",
+			request: "/qwertyuiop",
+			method:  http.MethodGet,
+			body:    "",
+			want: want{
+				statusCode:  http.StatusBadRequest,
+				contentType: "text/plain; charset=utf-8",
+				body:        "wrong hash provided\n",
+			},
+		},
+	}
+
 	storage := memstore.New()
 	server := app.New(storage)
 	server.MountHandlers()
 
-	// Correct long URL
-	shortenReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL))
-	shortenResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(shortenResp, shortenReq)
-	shortURL, _ := url.ParseRequestURI(shortenResp.Body.String())
-	urlHash := shortURL.Path[1:]
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := server.Router
+			ts := httptest.NewServer(r)
+			defer ts.Close()
 
-	assert.Equal(t, http.StatusCreated, shortenResp.Code)
-	assert.Equal(t, app.PlainText, shortenResp.Header().Get(app.ContentType))
-	assert.Equal(t, config.Addr, shortURL.Host)
-	assert.Equal(t, config.HashLen, len(urlHash))
-	assert.Regexp(t, hashPattern, urlHash)
+			resp, body := makeRequest(t, ts, tt.method, tt.request, tt.body)
 
-	// Empty string
-	emptyStringReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(""))
-	emptyStringResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(emptyStringResp, emptyStringReq)
-
-	assert.Equal(t, http.StatusBadRequest, emptyStringResp.Code)
-	assert.Equal(t, app.PlainText, shortenResp.Header().Get(app.ContentType))
-	assert.Equal(t, "Invalid URL\n", emptyStringResp.Body.String())
-
-	// Invalid URL
-	invalidURLReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("123"))
-	invalidURLResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(invalidURLResp, invalidURLReq)
-
-	assert.Equal(t, http.StatusBadRequest, invalidURLResp.Code)
-	assert.Equal(t, "Invalid URL\n", invalidURLResp.Body.String())
-
+			defer resp.Body.Close()
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.body, body)
+		})
+	}
 }
 
-func TestExpandURL(t *testing.T) {
-	storage := memstore.New()
-	server := app.New(storage)
-	server.MountHandlers()
+func makeRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+	require.NoError(t, err)
 
-	// Correct Hash
-	shortenReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL))
-	shortenResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(shortenResp, shortenReq)
-	shortURL, _ := url.ParseRequestURI(shortenResp.Body.String())
-	urlHash := shortURL.Path[1:]
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 
-	expandReq, _ := http.NewRequest(http.MethodGet, "/"+urlHash, nil)
-	expandResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(expandResp, expandReq)
+	resp, err := client.Do(req)
+	require.NoError(t, err)
 
-	assert.Equal(t, http.StatusTemporaryRedirect, expandResp.Code)
-	assert.Equal(t, longURL, expandResp.Header().Get(app.Location))
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
 
-	// Invalid Hash
-	invalidHashReq, _ := http.NewRequest(http.MethodGet, "/"+"invalidHash", nil)
-	invalidHashResp := httptest.NewRecorder()
-	server.Router.ServeHTTP(invalidHashResp, invalidHashReq)
+	return resp, string(respBody)
+}
 
-	assert.Equal(t, http.StatusBadRequest, invalidHashResp.Code)
-	assert.Equal(t, "", invalidHashResp.Header().Get(app.Location))
+func shortenURL(url string) string {
+	hash := app.GenerateHash(url, config.HashLen)
+	return fmt.Sprintf("http://%s/%s", config.Addr, hash)
 
 }
