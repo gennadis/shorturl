@@ -25,7 +25,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
 
-	s.Router.Post("/", s.shortenPlaintext)
+	s.Router.Post("/", s.shortenPlainText)
 	s.Router.Get("/{hash}", s.expand)
 }
 

@@ -19,52 +19,22 @@ const (
 	longURL = "http://amazon.com.tr"
 )
 
-func TestHandlers(t *testing.T) {
-	type want struct {
-		statusCode  int
-		contentType string
-		body        string
-	}
+type want struct {
+	statusCode  int
+	contentType string
+	body        string
+}
 
-	tests := []struct {
-		name    string
-		request string
-		method  string
-		body    string
-		want    want
-	}{{
-		name:    "Shorten valid original URL",
-		request: "/",
-		method:  http.MethodPost,
-		body:    longURL,
-		want: want{
-			statusCode:  http.StatusCreated,
-			contentType: "text/plain",
-			body:        shortenURL(longURL),
-		},
-	},
-		{
-			name:    "Shorten invalid original URL",
-			request: "/",
-			method:  http.MethodPost,
-			body:    "qwertyuiop",
-			want: want{
-				statusCode:  http.StatusBadRequest,
-				contentType: "text/plain; charset=utf-8",
-				body:        "Invalid URL\n",
-			},
-		},
-		{
-			name:    "Shorten empty original URL",
-			request: "/",
-			method:  http.MethodPost,
-			body:    "",
-			want: want{
-				statusCode:  http.StatusBadRequest,
-				contentType: "text/plain; charset=utf-8",
-				body:        "Invalid URL\n",
-			},
-		},
+type test struct {
+	name    string
+	request string
+	method  string
+	body    string
+	want    want
+}
+
+func TestMisc(t *testing.T) {
+	tests := []test{
 		{
 			name:    "Use wrong method",
 			request: "/",
@@ -76,48 +46,9 @@ func TestHandlers(t *testing.T) {
 				body:        "",
 			},
 		},
-		{
-			name:    "Expand valid hash",
-			request: "/eebc6e3",
-			method:  http.MethodGet,
-			body:    "",
-			want: want{
-				statusCode:  http.StatusTemporaryRedirect,
-				contentType: "",
-				body:        "",
-			},
-		},
-		{
-			name:    "Expand invalid hash",
-			request: "/qwertyuiop",
-			method:  http.MethodGet,
-			body:    "",
-			want: want{
-				statusCode:  http.StatusBadRequest,
-				contentType: "text/plain; charset=utf-8",
-				body:        "wrong hash provided\n",
-			},
-		},
 	}
 
-	storage := memstore.New()
-	server := app.New(storage)
-	server.MountHandlers()
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := server.Router
-			ts := httptest.NewServer(r)
-			defer ts.Close()
-
-			resp, body := makeRequest(t, ts, tt.method, tt.request, tt.body)
-
-			defer resp.Body.Close()
-			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
-			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
-			assert.Equal(t, tt.want.body, body)
-		})
-	}
+	runTests(t, tests)
 }
 
 func makeRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
@@ -138,6 +69,27 @@ func makeRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 	require.NoError(t, err)
 
 	return resp, string(respBody)
+}
+
+func runTests(t *testing.T, tests []test) {
+	storage := memstore.New()
+	server := app.New(storage)
+	server.MountHandlers()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := server.Router
+			ts := httptest.NewServer(r)
+			defer ts.Close()
+
+			resp, body := makeRequest(t, ts, tt.method, tt.request, tt.body)
+
+			defer resp.Body.Close()
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.body, body)
+		})
+	}
 }
 
 func shortenURL(url string) string {
