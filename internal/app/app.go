@@ -26,6 +26,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Use(middleware.Recoverer)
 
 	s.Router.Post("/", s.shortenPlainText)
+	s.Router.Post("/api/shorten", s.shortenJSON)
 	s.Router.Get("/{hash}", s.expand)
 }
 
