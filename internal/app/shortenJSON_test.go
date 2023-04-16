@@ -10,7 +10,7 @@ import (
 
 func TestShortenJSON(t *testing.T) {
 	validURLReqJSON, _ := json.Marshal(app.RequestJSON{URL: longURL})
-	validURLRespJSON, _ := json.Marshal(app.ResponseJSON{Result: shortenURL(longURL)})
+	validURLRespJSON, _ := json.Marshal(app.ResponseJSON{Result: shortURL})
 
 	invalidURLReqJSON, _ := json.Marshal(app.RequestJSON{URL: "qwertyuiop"})
 

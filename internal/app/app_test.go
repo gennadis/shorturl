@@ -1,13 +1,14 @@
 package app_test
 
 import (
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/caarlos0/env/v6"
 	"github.com/gennadis/shorturl/config"
 	"github.com/gennadis/shorturl/internal/app"
 	"github.com/gennadis/shorturl/internal/storage/memstore"
@@ -16,7 +17,8 @@ import (
 )
 
 const (
-	longURL = "http://amazon.com.tr"
+	longURL  = "http://amazon.com.tr"
+	shortURL = "http://localhost:8080/eebc6e3"
 )
 
 type want struct {
@@ -72,8 +74,13 @@ func makeRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 }
 
 func runTests(t *testing.T, tests []test) {
+	var cfg config.Config
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatal(err)
+	}
+
 	storage := memstore.New()
-	server := app.New(storage)
+	server := app.New(cfg, storage)
 	server.MountHandlers()
 
 	for _, tt := range tests {
@@ -90,10 +97,4 @@ func runTests(t *testing.T, tests []test) {
 			assert.Equal(t, tt.want.body, body)
 		})
 	}
-}
-
-func shortenURL(url string) string {
-	hash := app.GenerateHash(url, config.HashLen)
-	return fmt.Sprintf("http://%s/%s", config.Addr, hash)
-
 }

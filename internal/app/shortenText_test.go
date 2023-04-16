@@ -15,7 +15,7 @@ func TestShortenPlainText(t *testing.T) {
 			want: want{
 				statusCode:  http.StatusCreated,
 				contentType: "text/plain",
-				body:        shortenURL(longURL),
+				body:        shortURL,
 			},
 		},
 		{
