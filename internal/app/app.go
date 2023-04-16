@@ -10,13 +10,14 @@ import (
 )
 
 type Server struct {
+	Config config.Config
 	Store  storage.Repository
 	Router *chi.Mux
 }
 
 func (s *Server) Start() (err error) {
 	s.MountHandlers()
-	return http.ListenAndServe(config.Addr, s.Router)
+	return http.ListenAndServe(s.Config.ServerAddr, s.Router)
 }
 
 func (s *Server) MountHandlers() {
@@ -30,8 +31,9 @@ func (s *Server) MountHandlers() {
 	s.Router.Get("/{hash}", s.expand)
 }
 
-func New(storage storage.Repository) *Server {
+func New(config config.Config, storage storage.Repository) *Server {
 	return &Server{
+		Config: config,
 		Store:  storage,
 		Router: chi.NewRouter(),
 	}

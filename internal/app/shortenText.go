@@ -5,8 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gennadis/shorturl/config"
 )
 
 func (s *Server) shortenPlainText(w http.ResponseWriter, r *http.Request) {
@@ -23,13 +21,13 @@ func (s *Server) shortenPlainText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newHash := GenerateHash(newURL.String(), config.HashLen)
+	newHash := GenerateHash(newURL.String(), s.Config.HashLen)
 	if err := s.Store.Write(newHash, newURL.String()); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	response := fmt.Sprintf("http://%s/%s", config.Addr, newHash)
+	response := fmt.Sprintf("%s/%s", s.Config.BaseUrl, newHash)
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)

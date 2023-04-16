@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gennadis/shorturl/config"
 )
 
 type RequestJSON struct {
@@ -37,13 +35,13 @@ func (s *Server) shortenJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newHash := GenerateHash(newURL.String(), config.HashLen)
+	newHash := GenerateHash(newURL.String(), s.Config.HashLen)
 	if err := s.Store.Write(newHash, newURL.String()); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	respJSON := ResponseJSON{Result: fmt.Sprintf("http://%s/%s", config.Addr, newHash)}
+	respJSON := ResponseJSON{Result: fmt.Sprintf("%s/%s", s.Config.BaseUrl, newHash)}
 
 	resp, err := json.Marshal(respJSON)
 	if err != nil {
