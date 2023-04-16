@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	ServerAddr string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
-	BaseUrl    string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	BaseURL    string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	HashLen    int    `env:"HASH_LEN" envDefault:"7"`
 }
 

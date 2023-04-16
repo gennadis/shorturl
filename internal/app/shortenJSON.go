@@ -41,7 +41,7 @@ func (s *Server) shortenJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respJSON := ResponseJSON{Result: fmt.Sprintf("%s/%s", s.Config.BaseUrl, newHash)}
+	respJSON := ResponseJSON{Result: fmt.Sprintf("%s/%s", s.Config.BaseURL, newHash)}
 
 	resp, err := json.Marshal(respJSON)
 	if err != nil {
