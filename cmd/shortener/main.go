@@ -10,6 +10,7 @@ import (
 
 func main() {
 	cfg := config.New()
+	log.Printf("filepath env value: %q", cfg.Filepath)
 	storage := memstore.New()
 	server := app.New(*cfg, storage)
 	if err := server.Start(); err != nil {
