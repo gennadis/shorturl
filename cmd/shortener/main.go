@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gennadis/shorturl/config"
@@ -13,7 +12,6 @@ func main() {
 	cfg := config.New()
 	storage := memstore.New()
 	server := app.New(*cfg, storage)
-	fmt.Print(server.Config.ServerAddr)
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}
