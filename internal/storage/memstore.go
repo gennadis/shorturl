@@ -1,4 +1,4 @@
-package memstore
+package storage
 
 import (
 	"errors"

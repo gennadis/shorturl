@@ -5,13 +5,13 @@ import (
 
 	"github.com/gennadis/shorturl/config"
 	"github.com/gennadis/shorturl/internal/app"
-	"github.com/gennadis/shorturl/internal/storage/memstore"
+	"github.com/gennadis/shorturl/internal/storage"
 )
 
 func main() {
 	cfg := config.New()
 	log.Printf("filepath env value: %q", cfg.Filepath)
-	storage := memstore.New()
+	storage := storage.New()
 	server := app.New(*cfg, storage)
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
