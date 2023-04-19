@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/gennadis/shorturl/internal/app"
 	"github.com/gennadis/shorturl/internal/storage/memstore"
@@ -9,8 +9,8 @@ import (
 
 func main() {
 	storage := memstore.New()
-	shortener := app.New(storage)
-	if err := shortener.Start(); err != nil {
-		fmt.Println(err)
+	server := app.New(storage)
+	if err := server.Start(); err != nil {
+		log.Fatal(err)
 	}
 }

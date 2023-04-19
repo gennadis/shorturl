@@ -1,82 +1,99 @@
 package app_test
 
 import (
-	"bytes"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/gennadis/shorturl/config"
 	"github.com/gennadis/shorturl/internal/app"
-	"github.com/gennadis/shorturl/internal/config"
 	"github.com/gennadis/shorturl/internal/storage/memstore"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
-	longURL     = "http://example.com"
-	hashPattern = "^[a-zA-Z]+$"
+	longURL = "http://amazon.com.tr"
 )
 
-func TestShortenerApp(t *testing.T) {
-	store := memstore.New()
-	a := app.New(store)
-
-	// Test URL Shortener
-	shortenReq, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL))
-	shortenResp := httptest.NewRecorder()
-	a.Multiplex(shortenResp, shortenReq)
-
-	shortURL, _ := url.ParseRequestURI(shortenResp.Body.String())
-	urlHash := shortURL.Path[1:]
-
-	assertResponseCode(t, shortenResp.Code, http.StatusCreated)
-	assertResponseHeader(t, "Content-Type", shortenResp.Header().Get("Content-Type"), "text/plain")
-	assertHost(t, shortURL.Host, config.Addr)
-	assertHashLen(t, len(urlHash), config.HashLen)
-	assertHashLettersOnly(t, hashPattern, urlHash)
-
-	// Test URL Expander
-	expandReq, _ := http.NewRequest(http.MethodGet, "/"+urlHash, nil)
-	expandResp := httptest.NewRecorder()
-	a.Multiplex(expandResp, expandReq)
-
-	assertResponseCode(t, expandResp.Code, http.StatusTemporaryRedirect)
-	assertResponseHeader(t, "Location", expandResp.Header().Get("Location"), longURL)
-
+type want struct {
+	statusCode  int
+	contentType string
+	body        string
 }
 
-func assertResponseCode(t testing.TB, got, want int) {
-	t.Helper()
-	if got != want {
-		t.Errorf("response code is wrong, got %d, want %d", got, want)
+type test struct {
+	name    string
+	request string
+	method  string
+	body    string
+	want    want
+}
+
+func TestMisc(t *testing.T) {
+	tests := []test{
+		{
+			name:    "Use wrong method",
+			request: "/",
+			method:  http.MethodGet,
+			body:    "",
+			want: want{
+				statusCode:  http.StatusMethodNotAllowed,
+				contentType: "",
+				body:        "",
+			},
+		},
+	}
+
+	runTests(t, tests)
+}
+
+func makeRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+	require.NoError(t, err)
+
+	client := http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	return resp, string(respBody)
+}
+
+func runTests(t *testing.T, tests []test) {
+	storage := memstore.New()
+	server := app.New(storage)
+	server.MountHandlers()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := server.Router
+			ts := httptest.NewServer(r)
+			defer ts.Close()
+
+			resp, body := makeRequest(t, ts, tt.method, tt.request, tt.body)
+
+			defer resp.Body.Close()
+			assert.Equal(t, tt.want.statusCode, resp.StatusCode)
+			assert.Equal(t, tt.want.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, tt.want.body, body)
+		})
 	}
 }
 
-func assertResponseHeader(t testing.TB, header, got, want string) {
-	t.Helper()
-	if got != want {
-		t.Errorf("response %s header is wrong, got %s, want %s", header, got, want)
-	}
-}
+func shortenURL(url string) string {
+	hash := app.GenerateHash(url, config.HashLen)
+	return fmt.Sprintf("http://%s/%s", config.Addr, hash)
 
-func assertHost(t testing.TB, got, want string) {
-	t.Helper()
-	if got != want {
-		t.Errorf("host address is wrong, got %s, want %s", got, want)
-	}
-}
-
-func assertHashLen(t testing.TB, got, want int) {
-	t.Helper()
-	if got != want {
-		t.Errorf("hash length is wrong, got %d, want %d", got, want)
-	}
-}
-
-func assertHashLettersOnly(t testing.TB, pattern, hash string) {
-	t.Helper()
-	if ok, _ := regexp.MatchString(pattern, hash); !ok {
-		t.Errorf("hash must contain letters only, hash %s, pattern %s", hash, pattern)
-	}
 }
