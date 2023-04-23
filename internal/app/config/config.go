@@ -13,7 +13,7 @@ type Config struct {
 	Filepath   string `env:"FILE_STORAGE_PATH"`
 }
 
-func New() *Config {
+func NewConfig() *Config {
 	cfg := Config{}
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)

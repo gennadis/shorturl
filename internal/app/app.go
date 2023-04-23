@@ -31,7 +31,7 @@ func (s *Server) MountHandlers() {
 	s.Router.Get("/{hash}", s.expand)
 }
 
-func New(config config.Config, storage storage.Repository) *Server {
+func NewServer(config config.Config, storage storage.Repository) *Server {
 	return &Server{
 		Config: config,
 		Store:  storage,

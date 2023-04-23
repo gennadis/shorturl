@@ -9,10 +9,9 @@ import (
 )
 
 func main() {
-	cfg := config.New()
-	log.Printf("filepath env value: %q", cfg.Filepath)
-	storage := storage.New()
-	server := app.New(*cfg, storage)
+	cfg := config.NewConfig()
+	storage := storage.NewStorage()
+	server := app.NewServer(*cfg, storage)
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}

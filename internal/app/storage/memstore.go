@@ -13,7 +13,7 @@ type Storage struct {
 	data map[string]string
 }
 
-func New() *Storage {
+func NewStorage() *Storage {
 	return &Storage{
 		data: make(map[string]string),
 	}

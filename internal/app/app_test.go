@@ -79,8 +79,8 @@ func runTests(t *testing.T, tests []test) {
 		log.Fatal(err)
 	}
 
-	storage := storage.New()
-	server := app.New(cfg, storage)
+	storage := storage.NewStorage()
+	server := app.NewServer(cfg, storage)
 	server.MountHandlers()
 
 	for _, tt := range tests {
