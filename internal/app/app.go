@@ -3,8 +3,8 @@ package app
 import (
 	"net/http"
 
-	"github.com/gennadis/shorturl/config"
-	"github.com/gennadis/shorturl/internal/storage"
+	"github.com/gennadis/shorturl/internal/app/config"
+	"github.com/gennadis/shorturl/internal/app/storage"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 )

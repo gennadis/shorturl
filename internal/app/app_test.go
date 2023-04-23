@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/gennadis/shorturl/config"
 	"github.com/gennadis/shorturl/internal/app"
-	"github.com/gennadis/shorturl/internal/storage"
+	"github.com/gennadis/shorturl/internal/app/config"
+	"github.com/gennadis/shorturl/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

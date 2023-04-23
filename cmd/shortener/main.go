@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/gennadis/shorturl/config"
 	"github.com/gennadis/shorturl/internal/app"
-	"github.com/gennadis/shorturl/internal/storage"
+	"github.com/gennadis/shorturl/internal/app/config"
+	"github.com/gennadis/shorturl/internal/app/storage"
 )
 
 func main() {
