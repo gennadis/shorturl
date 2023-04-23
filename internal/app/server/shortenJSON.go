@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/gennadis/shorturl/internal/app"
 )
 
 type RequestJSON struct {
@@ -35,7 +37,7 @@ func (s *Server) shortenJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newHash := GenerateHash(newURL.String(), s.Config.HashLen)
+	newHash := app.GenerateHash(newURL.String(), s.Config.HashLen)
 	if err := s.Store.Write(newHash, newURL.String()); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

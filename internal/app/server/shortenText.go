@@ -1,10 +1,12 @@
-package app
+package server
 
 import (
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/gennadis/shorturl/internal/app"
 )
 
 func (s *Server) shortenPlainText(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +23,7 @@ func (s *Server) shortenPlainText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newHash := GenerateHash(newURL.String(), s.Config.HashLen)
+	newHash := app.GenerateHash(newURL.String(), s.Config.HashLen)
 	if err := s.Store.Write(newHash, newURL.String()); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

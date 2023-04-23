@@ -1,20 +1,18 @@
-package app_test
+package server
 
 import (
 	"encoding/json"
 	"net/http"
 	"testing"
-
-	"github.com/gennadis/shorturl/internal/app"
 )
 
 func TestShortenJSON(t *testing.T) {
-	validURLReqJSON, _ := json.Marshal(app.RequestJSON{URL: longURL})
-	validURLRespJSON, _ := json.Marshal(app.ResponseJSON{Result: shortURL})
+	validURLReqJSON, _ := json.Marshal(RequestJSON{URL: longURL})
+	validURLRespJSON, _ := json.Marshal(ResponseJSON{Result: shortURL})
 
-	invalidURLReqJSON, _ := json.Marshal(app.RequestJSON{URL: "qwertyuiop"})
+	invalidURLReqJSON, _ := json.Marshal(RequestJSON{URL: "qwertyuiop"})
 
-	emptyURLReqJSON, _ := json.Marshal(app.RequestJSON{URL: ""})
+	emptyURLReqJSON, _ := json.Marshal(RequestJSON{URL: ""})
 
 	tests := []test{
 		{
